@@ -1,0 +1,103 @@
+:root{
+  --bg:#0b1020;
+  --card:#111827;
+  --line:rgba(255,255,255,.10);
+  --text:rgba(255,255,255,.92);
+  --muted:rgba(255,255,255,.62);
+  --accent:#60a5fa;
+}
+
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  font-family:-apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+  background:linear-gradient(180deg, #060913, var(--bg));
+  color:var(--text);
+}
+
+.bar{
+  position:sticky; top:0;
+  background:rgba(6,9,19,.85);
+  backdrop-filter: blur(10px);
+  border-bottom:1px solid var(--line);
+  padding:14px 16px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+
+.wrap{ padding:16px; max-width:760px; margin:0 auto; }
+.card{
+  background:rgba(17,24,39,.9);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:16px;
+}
+
+.row{ display:flex; gap:10px; align-items:center; }
+.space{ justify-content:space-between; }
+.muted{ color:var(--muted); font-size:13px; }
+
+button{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  padding:10px 12px;
+  border-radius:12px;
+}
+button.ghost{ background:transparent; }
+button:active{ transform: translateY(1px); }
+
+input, select{
+  width:100%;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:rgba(0,0,0,.25);
+  color:var(--text);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns: 1fr 140px;
+  gap:10px;
+}
+.grid button{ grid-column: 1 / -1; }
+
+.divider{ height:1px; background:var(--line); margin:14px 0; }
+
+.list{ display:flex; flex-direction:column; gap:10px; }
+
+.item{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.04);
+  border-radius:14px;
+  padding:12px;
+}
+
+.itemTop{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+
+.badge{
+  font-size:12px;
+  padding:4px 8px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  color:var(--muted);
+}
+
+.hidden{ display:none; }
+
+.progress{
+  height:10px;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  overflow:hidden;
+  border:1px solid var(--line);
+  margin-top:10px;
+}
+.progress > div{
+  height:100%;
+  width:0%;
+  background:var(--accent);
+}
