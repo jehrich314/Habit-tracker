@@ -746,14 +746,8 @@
 
       // Default view: ensure most recent day is on-screen
       requestAnimationFrame(() => {
-        const target = todaySquare || lastSquare;
-        if(target){
-          // Scroll the months strip so the current month/day is visible
-          target.scrollIntoView({ behavior: "auto", inline: "end", block: "nearest" });
-        } else {
-          monthsEl.scrollLeft = monthsEl.scrollWidth;
-        }
-      });
+  monthsEl.scrollLeft = monthsEl.scrollWidth;
+});
     });
   }
 
