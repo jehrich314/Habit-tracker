@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Habit Grid</title>
+
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --line:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.95);
+      --muted:rgba(255,255,255,.62);
+      --accent:#7c5cff;
+
+      --good:#2ee59d;
+      --mid:#ffd166;
+      --bad:#ff5c7a;
+
+      --sq:14px;
+      --gap:6px;
+      --radius:18px;
+
+      color-scheme: dark;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:-apple-system,system-ui,Segoe UI,Roboto,Helvetica,Arial;
+      background:
+        radial-gradient(900px 520px at 20% -10%, rgba(124,92,255,.24), transparent 60%),
+        radial-gradient(700px 420px at 110% 10%, rgba(46,229,157,.16), transparent 55%),
+        var(--bg);
+      color:var(--text);
+    }
+
+    header{
+      position:sticky;
+      top:0;
+      z-index:10;
+      padding:16px 16px 12px;
+      background:rgba(11,15,23,.86);
+      backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--line);
+    }
+
+    h1{
+      margin:0;
+      font-size:20px;
+      font-weight:850;
+      letter-spacing:.2px;
+    }
+
+    .sub{
+      margin-top:6px;
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    main{
+      padding:14px 14px 104px;
+      max-width:860px;
+      margin:0 auto;
+    }
+
+    .gallery{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.04));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      overflow:hidden;
+      box-shadow: 0 12px 28px rgba(0,0,0,.28);
+    }
+
+    .cardTop{
+      padding:14px;
+      display:flex;
+      gap:12px;
+      justify-content:space-between;
+      align-items:flex-start;
+    }
+
+    .cardTitle{
+      flex:1 1 auto;
+      min-width:0;
+    }
+
+    /* More space: 2-line wrap, and actions will drop below on small screens */
+    .habitName{
+      font-size:16px;
+      font-weight:800;
+      line-height:1.2;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+
+    .meta{
+      margin-top:4px;
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .pill{
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(0,0,0,.18);
+      color:rgba(255,255,255,.78);
+      font-weight:700;
+    }
+
+    .actions{
+      display:flex;
+      gap:8px;
+      flex:0 0 auto;
+      white-space:nowrap;
+    }
+
+    button{
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+      color:var(--text);
+      padding:9px 12px;
+      border-radius:12px;
+      font-size:13px;
+      font-weight:800;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:active{ transform: translateY(1px); }
+
+    .primary{
+      background:rgba(124,92,255,.22);
+      border-color:rgba(124,92,255,.45);
+    }
+    .danger{
+      background:rgba(255,92,122,.18);
+      border-color:rgba(255,92,122,.45);
+    }
+
+    .months{
+      display:flex;
+      gap:14px;
+      padding:14px;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      border-top:1px solid rgba(255,255,255,.08);
+    }
+
+    .month{
+      min-width:240px;
+      flex:0 0 auto;
+    }
+
+    .monthHead{
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      margin-bottom:8px;
+      gap:10px;
+    }
+
+    .monthName{
+      font-size:12px;
+      font-weight:900;
+      color:rgba(255,255,255,.78);
+      letter-spacing:.2px;
+    }
+
+    .monthMini{
+      font-size:11px;
+      color:rgba(255,255,255,.52);
+      font-weight:700;
+    }
+
+    .monthGrid{
+      display:grid;
+      grid-template-columns:repeat(7, var(--sq));
+      gap:var(--gap);
+      padding:10px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.18);
+      align-content:start;
+    }
+
+    .sq, .sqBlank{
+      width:var(--sq);
+      height:var(--sq);
+      border-radius:4px;
+    }
+
+    .sq{
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.06);
+      cursor:pointer;
+    }
+
+    .sqBlank{
+      background:transparent;
+      border:1px solid transparent;
+    }
+
+    .sq[data-level="0"]{ background:rgba(255,255,255,.07); }
+    .sq[data-level="1"]{ background:rgba(255,92,122,.45); border-color:rgba(255,92,122,.28); }
+    .sq[data-level="2"]{ background:rgba(255,209,102,.55); border-color:rgba(255,209,102,.28); }
+    .sq[data-level="3"]{ background:rgba(46,229,157,.60); border-color:rgba(46,229,157,.30); }
+
+    .sq.today{
+      outline:2px solid rgba(124,92,255,.75);
+      outline-offset:1px;
+    }
+
+    .fab{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      padding:14px 14px calc(14px + env(safe-area-inset-bottom));
+      background:linear-gradient(to top, rgba(11,15,23,.92), transparent);
+      backdrop-filter: blur(10px);
+    }
+
+    .fab button{
+      width:min(560px,100%);
+      display:block;
+      margin:0 auto;
+      padding:14px 16px;
+      border-radius:16px;
+      font-size:15px;
+      background:linear-gradient(135deg, rgba(124,92,255,.30), rgba(46,229,157,.14));
+      border:1px solid rgba(255,255,255,.18);
+    }
+
+    /* Modal */
+    .backdrop{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      padding:14px;
+      background:rgba(0,0,0,.62);
+      z-index:50;
+      backdrop-filter: blur(6px);
+    }
+
+    .modal{
+      width:min(680px,100%);
+      background:rgba(18,24,36,.97);
+      border:1px solid var(--line);
+      border-radius:20px;
+      overflow:hidden;
+      box-shadow: 0 18px 40px rgba(0,0,0,.45);
+    }
+
+    .modalHead{
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+
+    .modalTitle{
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+
+    .modalBody{
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    label{ font-size:12px; color:var(--muted); font-weight:700; }
+
+    input, select{
+      width:100%;
+      padding:12px 12px;
+      border-radius:14px;
+      background:rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.14);
+      color:var(--text);
+      font-size:15px;
+      outline:none;
+    }
+
+    .row{ display:flex; gap:10px; }
+    .row > div{ flex:1; }
+
+    .modalFoot{
+      padding:12px 14px 14px;
+      border-top:1px solid rgba(255,255,255,.10);
+      display:flex;
+      gap:10px;
+    }
+    .modalFoot button{ flex:1; }
+
+    /* Mobile: give name even more room by stacking actions */
+    @media (max-width: 520px){
+      .cardTop{ flex-direction:column; }
+      .actions{ width:100%; }
+      .actions button{ flex:1; }
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Habit Grid</h1>
+  <div class="sub">Tap a day to log • Months scroll horizontally • Auto-saves on this device</div>
+</header>
+
+<main>
+  <div id="gallery" class="gallery"></div>
+</main>
+
+<div class="fab">
+  <button id="addBtn" class="primary">＋ Add habit</button>
+</div>
+
+<!-- Modal -->
+<div class="backdrop" id="modalBack">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modalHead">
+      <div class="modalTitle" id="modalTitle">Modal</div>
+      <button id="closeBtn">Close</button>
+    </div>
+    <div class="modalBody" id="modalBody"></div>
+    <div class="modalFoot">
+      <button id="cancelBtn">Cancel</button>
+      <button id="saveBtn" class="primary">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const STORAGE_KEY = "habit_grid_v2";
+
+  // ----- DOM -----
+  const gallery = document.getElementById("gallery");
+  const addBtn = document.getElementById("addBtn");
+  const modalBack = document.getElementById("modalBack");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalBody  = document.getElementById("modalBody");
+  const closeBtn   = document.getElementById("closeBtn");
+  const cancelBtn  = document.getElementById("cancelBtn");
+  const saveBtn    = document.getElementById("saveBtn");
+
+  // ----- Date helpers -----
+  const pad2 = n => String(n).padStart(2,"0");
+  const today = new Date(); today.setHours(12,0,0,0);
+  const ymd = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+
+  function monthLabel(date){
+    return date.toLocaleDateString(undefined, { month:"short", year:"numeric" });
+  }
+
+  function startOfMonth(date){
+    const d = new Date(date.getFullYear(), date.getMonth(), 1);
+    d.setHours(12,0,0,0);
+    return d;
+  }
+
+  function endOfMonth(date){
+    const d = new Date(date.getFullYear(), date.getMonth()+1, 0);
+    d.setHours(12,0,0,0);
+    return d;
+  }
+
+  function addDays(date, n){
+    const d = new Date(date);
+    d.setDate(d.getDate()+n);
+    d.setHours(12,0,0,0);
+    return d;
+  }
+
+  // ----- Storage -----
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : { habits: [] };
+    } catch {
+      return { habits: [] };
+    }
+  }
+  const state = loadState();
+
+  function saveState(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  // ----- Modal helpers -----
+  let modalOnSave = null;
+
+  function openModal(title, bodyHtml, onSave){
+    modalTitle.textContent = title;
+    modalBody.innerHTML = bodyHtml;
+    modalOnSave = onSave;
+    modalBack.style.display = "flex";
+  }
+
+  function closeModal(){
+    modalBack.style.display = "none";
+    modalBody.innerHTML = "";
+    modalOnSave = null;
+  }
+
+  closeBtn.addEventListener("click", closeModal);
+  cancelBtn.addEventListener("click", closeModal);
+  modalBack.addEventListener("click", (e) => {
+    if(e.target === modalBack) closeModal();
+  });
+  saveBtn.addEventListener("click", () => {
+    if(modalOnSave) modalOnSave();
+  });
+
+  // ----- Scoring / color levels -----
+  function levelFor(habit, dateStr){
+    const v = habit.logs?.[dateStr];
+
+    if(habit.type === "yn"){
+      if(v === true) return 3;
+      if(v === false) return 1;
+      return 0;
+    }
+
+    // numeric
+    if(v === undefined || v === null || v === "") return 0;
+    const num = Number(v);
+    if(!Number.isFinite(num)) return 0;
+
+    const t = Number(habit.target || 0);
+    if(t <= 0){
+      if(num <= 0) return 1;
+      return 3;
+    }
+    const ratio = num / t;
+    if(ratio <= 0) return 1;
+    if(ratio < 0.6) return 1;
+    if(ratio < 1.0) return 2;
+    return 3;
+  }
+
+  function streakFor(habit){
+    // consecutive "done" days ending today
+    let s = 0;
+    for(let i=0; i<3650; i++){
+      const d = addDays(today, -i);
+      const key = ymd(d);
+      const v = habit.logs?.[key];
+
+      let done = false;
+      if(habit.type === "yn"){
+        done = (v === true);
+      } else {
+        const num = Number(v);
+        if(Number.isFinite(num)){
+          const t = Number(habit.target || 0);
+          done = (t <= 0) ? (num > 0) : (num >= t);
+        }
+      }
+
+      if(done) s++;
+      else break;
+    }
+    return s;
+  }
+
+  // ----- Month window builder -----
+  function monthsInWindow(monthCount){
+    // includes current month, going back (monthCount-1)
+    const months = [];
+    for(let i = monthCount - 1; i >= 0; i--){
+      const m = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      m.setHours(12,0,0,0);
+      months.push(m);
+    }
+    return months;
+  }
+
+  // ----- Logging -----
+  function openLogModal(habit, dateStr){
+    const existing = habit.logs?.[dateStr];
+
+    if(habit.type === "yn"){
+      const cur = (existing === true) ? "yes" : (existing === false ? "no" : "unset");
+      openModal(
+        `Log: ${habit.name}`,
+        `
+          <div class="pill" style="display:inline-block;margin-bottom:10px;">${dateStr}</div>
+
+          <div class="row">
+            <div>
+              <label>Status</label>
+              <select id="logYN">
+                <option value="unset"${cur==="unset"?" selected":""}>—</option>
+                <option value="yes"${cur==="yes"?" selected":""}>Yes</option>
+                <option value="no"${cur==="no"?" selected":""}>No</option>
+              </select>
+            </div>
+            <div>
+              <label>Quick</label>
+              <div class="row">
+                <button type="button" class="primary" id="qYes">Yes</button>
+                <button type="button" id="qNo">No</button>
+              </div>
+            </div>
+          </div>
+        `,
+        () => {
+          const sel = document.getElementById("logYN").value;
+          habit.logs = habit.logs || {};
+          if(sel === "unset") delete habit.logs[dateStr];
+          else habit.logs[dateStr] = (sel === "yes");
+          saveState();
+          closeModal();
+          render();
+        }
+      );
+
+      document.getElementById("qYes").onclick = () => document.getElementById("logYN").value = "yes";
+      document.getElementById("qNo").onclick  = () => document.getElementById("logYN").value = "no";
+      return;
+    }
+
+    // numeric
+    openModal(
+      `Log: ${habit.name}`,
+      `
+        <div class="pill" style="display:inline-block;margin-bottom:10px;">${dateStr}</div>
+        <div>
+          <label>Value${habit.target ? ` (target ${habit.target})` : ""}</label>
+          <input id="logNum" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="0" value="${(existing ?? "")}" />
+        </div>
+      `,
+      () => {
+        const raw = document.getElementById("logNum").value;
+        habit.logs = habit.logs || {};
+        if(raw === "") delete habit.logs[dateStr];
+        else {
+          const n = Number(raw);
+          if(!Number.isFinite(n)){
+            alert("Enter a valid number.");
+            return;
+          }
+          habit.logs[dateStr] = n;
+        }
+        saveState();
+        closeModal();
+        render();
+      }
+    );
+  }
+
+  // ----- Add habit -----
+  function openAddHabitModal(){
+    openModal(
+      "Add habit",
+      `
+        <div>
+          <label>Habit name</label>
+          <input id="hName" placeholder="e.g., Water, Workout, Read" maxlength="80" />
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Type</label>
+            <select id="hType">
+              <option value="yn">Yes / No</option>
+              <option value="num">Numeric</option>
+            </select>
+          </div>
+
+          <div id="targetWrap" style="display:none;">
+            <label>Target (optional)</label>
+            <input id="hTarget" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="e.g., 8" />
+          </div>
+        </div>
+      `,
+      () => {
+        const name = document.getElementById("hName").value.trim();
+        const type = document.getElementById("hType").value;
+        const targetRaw = document.getElementById("hTarget")?.value;
+
+        if(!name){
+          alert("Please enter a habit name.");
+          return;
+        }
+
+        let target = null;
+        if(type === "num" && targetRaw !== "" && targetRaw != null){
+          const t = Number(targetRaw);
+          if(!Number.isFinite(t) || t < 0){
+            alert("Target must be a valid number.");
+            return;
+          }
+          target = t;
+        }
+
+        state.habits.push({
+          id: (crypto?.randomUUID ? crypto.randomUUID() : ("h_" + Math.random().toString(16).slice(2))),
+          name,
+          type,
+          target,
+          logs: {}
+        });
+
+        saveState();
+        closeModal();
+        render();
+      }
+    );
+
+    const typeSel = document.getElementById("hType");
+    const targetWrap = document.getElementById("targetWrap");
+    typeSel.addEventListener("change", () => {
+      targetWrap.style.display = (typeSel.value === "num") ? "block" : "none";
+    });
+  }
+
+  addBtn.addEventListener("click", openAddHabitModal);
+
+  // ----- Render -----
+  function render(){
+    gallery.innerHTML = "";
+
+    if(state.habits.length === 0){
+      gallery.innerHTML = `
+        <div class="card">
+          <div class="cardTop">
+            <div class="cardTitle">
+              <div class="habitName">No habits yet</div>
+              <div class="meta">Tap “＋ Add habit” to create your first one.</div>
+            </div>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const monthCount = 4; // last ~4 months
+    const months = monthsInWindow(monthCount);
+
+    state.habits.forEach((habit) => {
+      const streak = streakFor(habit);
+      const typeText = habit.type === "yn" ? "Yes/No" : `Numeric${habit.target ? ` · target ${habit.target}` : ""}`;
+
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="cardTop">
+          <div class="cardTitle">
+            <div class="habitName" title="${habit.name.replaceAll('"','&quot;')}">${habit.name}</div>
+            <div class="meta">
+              <span class="pill">${typeText}</span>
+              <span>Streak: <b>${streak}</b></span>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="primary" data-act="yesterday">Log yesterday</button>
+            <button class="danger" data-act="delete">Delete</button>
+          </div>
+        </div>
+
+        <div class="months" aria-label="Months"></div>
+      `;
+
+      const monthsEl = card.querySelector(".months");
+
+      card.querySelector('[data-act="delete"]').onclick = () => {
+        if(confirm(`Delete "${habit.name}"?`)){
+          state.habits = state.habits.filter(h => h.id !== habit.id);
+          saveState();
+          render();
+        }
+      };
+
+      card.querySelector('[data-act="yesterday"]').onclick = () => {
+        const y = addDays(today, -1);
+        openLogModal(habit, ymd(y));
+      };
+
+      // Build month blocks
+      let todaySquare = null;
+      let lastSquare = null;
+
+      months.forEach((m0) => {
+        const mStart = startOfMonth(m0);
+        const mEnd = endOfMonth(m0);
+
+        const monthDiv = document.createElement("div");
+        monthDiv.className = "month";
+        monthDiv.innerHTML = `
+          <div class="monthHead">
+            <div class="monthName">${monthLabel(mStart)}</div>
+            <div class="monthMini">${mStart.getFullYear()}</div>
+          </div>
+          <div class="monthGrid"></div>
+        `;
+        const grid = monthDiv.querySelector(".monthGrid");
+
+        // Pad blanks to align first day of month
+        const blanks = mStart.getDay(); // Sunday=0..Saturday=6
+        for(let i=0; i<blanks; i++){
+          const b = document.createElement("div");
+          b.className = "sqBlank";
+          grid.appendChild(b);
+        }
+
+        // Days in month
+        for(let d = new Date(mStart); d <= mEnd; d = addDays(d, 1)){
+          const key = ymd(d);
+          const sq = document.createElement("div");
+          sq.className = "sq";
+          sq.dataset.level = String(levelFor(habit, key));
+          sq.title = key;
+          if(key === ymd(today)){
+            sq.classList.add("today");
+            todaySquare = sq;
+          }
+          sq.onclick = () => openLogModal(habit, key);
+          grid.appendChild(sq);
+          lastSquare = sq;
+        }
+
+        monthsEl.appendChild(monthDiv);
+      });
+
+      gallery.appendChild(card);
+
+      // Default view: ensure most recent day is on-screen
+      requestAnimationFrame(() => {
+        const target = todaySquare || lastSquare;
+        if(target){
+          // Scroll the months strip so the current month/day is visible
+          target.scrollIntoView({ behavior: "auto", inline: "end", block: "nearest" });
+        } else {
+          monthsEl.scrollLeft = monthsEl.scrollWidth;
+        }
+      });
+    });
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
